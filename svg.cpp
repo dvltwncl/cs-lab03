@@ -21,28 +21,40 @@ void svg_rect(double x, double y, double width, double height,string stroke, str
          << "' stroke='" << stroke << "' fill='" << fill << "' />\n";
 }
 
-void show_histogram_svg(const vector<size_t>& bins) {
-const auto IMAGE_WIDTH = 400;
-const auto IMAGE_HEIGHT = 300;
-const auto TEXT_LEFT = 20;
-const auto TEXT_BASELINE = 20;
-const auto TEXT_WIDTH = 50;
-const auto BIN_HEIGHT = 30;
-const auto BLOCK_WIDTH = 10;
-const auto MAX_WIDTH = 760;
-    svg_begin(IMAGE_WIDTH, IMAGE_HEIGHT);
-double top = 0;
-    for (size_t i = 0; i < bins.size(); i++) {
-        double bin_width = BLOCK_WIDTH * bins[i];
-        // Масштабирование ширины столбца, если она больше 760
-        if (bin_width > MAX_WIDTH) {
-            bin_width = MAX_WIDTH;
-        }
 
-        svg_text(TEXT_LEFT, top + TEXT_BASELINE, to_string(bins[i]));
+void show_histogram_svg(const vector<size_t>& bins, set<double> range_num)
+{
+    const auto IMAGE_WIDTH = 400;
+    const auto IMAGE_HEIGHT = 300;
+    const auto TEXT_BASELINE = 20;
+    const auto TEXT_WIDTH = 50;
+    const auto BIN_HEIGHT = 30;
+    const size_t SCREEN_WIDTH = 80;
+const size_t MAX_ASTERISK = SCREEN_WIDTH - 4 - 1;
+    double top = 0;
+    auto range = range_num.begin();
+    size_t max_bins = *max_element(bins.begin(), bins.end());
+    svg_begin(IMAGE_WIDTH, IMAGE_HEIGHT);
+    for (int i = 0; i < bins.size(); i++)
+    {
+        size_t text_left = 30;
+        if (bins[i] < 100)
+            text_left = 40;
+        else if (bins[i] < 10)
+            text_left = 50;
+
+        size_t block_width = 10;
+        if (max_bins > MAX_ASTERISK)
+            block_width = MAX_ASTERISK * (static_cast<double>(bins[i]) / max_bins);
+            svg_text(text_left, top + TEXT_BASELINE, to_string(bins[i]));
+        const double bin_width = block_width * bins[i];
         svg_rect(TEXT_WIDTH, top, bin_width, BIN_HEIGHT, "red", "#FF69B4");
+        if (i != bins.size() - 1)
+        {
+            svg_text(text_left-30, top + TEXT_BASELINE+13, format_number(*range));
+            range++;
+        }
         top += BIN_HEIGHT;
     }
     svg_end();
 }
-
